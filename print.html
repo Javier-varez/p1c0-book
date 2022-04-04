@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="design_goals.html"><strong aria-hidden="true">1.</strong> Design Goals</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.</strong> Source files organization</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Installation process</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Running the emulator</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Design</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Overall driver architecture</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Memory subsystem</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> File subsystem</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.4.</strong> Process/thread scheduling</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.5.</strong> Standard library</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Testing</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Tooling</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Other related projects</div></li><li class="spacer"></li><li class="chapter-item expanded affix "><div>Acknowledgements</div></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="design_goals.html"><strong aria-hidden="true">1.</strong> Design Goals</a></li><li class="chapter-item expanded "><a href="source_organization.html"><strong aria-hidden="true">2.</strong> Source files organization</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Installation process</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> Running the emulator</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.</strong> Design</div></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">5.1.</strong> Overall driver architecture</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.2.</strong> Memory subsystem</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.3.</strong> File subsystem</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.4.</strong> Process/thread scheduling</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">5.5.</strong> Standard library</div></li></ol></li><li class="chapter-item expanded "><div><strong aria-hidden="true">6.</strong> Testing</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">7.</strong> Tooling</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">8.</strong> Other related projects</div></li><li class="spacer"></li><li class="chapter-item expanded affix "><div>Acknowledgements</div></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -193,6 +193,35 @@ architectures from being supported.</li>
 </ul>
 <p>As with any project, we might update the goals as the system grows. We will keep this guide up 
 to date with the current design philosophy.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="source-files-organization"><a class="header" href="#source-files-organization">Source files organization</a></h1>
+<p>The sources are currently organized in multiple crates and libraries as follows:</p>
+<ul>
+<li><code>fw/p1c0</code> - Library for the FW build of p1c0. This is mainly all sources that are built for the 
+m1 mac with the <code>aarch64-unknown-none-softfloat</code> target. This depends on <code>p1c0-kernel</code>.</li>
+<li><code>fw/tests/</code> - These are all on-target integration tests that can be run with qemu. They use the 
+<code>test-fwk</code>.</li>
+<li><code>fw/p1c0-bin</code> - The actual binary we run on the m1 mac.</li>
+<li><code>p1c0-kernel</code> - These are the sources of the kernel that can be built for other targets and 
+tested on the host. All unit tests are in this library package.</li>
+<li><code>p1c0-macros</code> - This is a proc-macro crate which defines helpers for the <code>p1c0</code> OS.</li>
+<li><code>test-fwk</code> - Contains the test framework that uses arm-semihosting to create test runners and 
+perform I/O on the host, as well as exit with error codes in order to fail a test or not.</li>
+<li><code>test-fwk/m1-runner</code> - This is a binary that can take a <code>mach-o</code> file wrapped in an <code>elf</code> file 
+and run it. The <code>mach-o</code> to <code>elf</code> conversion dance is a bit of a hack because the toolchain does 
+not support macho files.
+The m1-runner can be used as a custom cargo runner for <code>fw/p1c0-bin</code>. It reads configuration 
+from the CARGO_MANIFEST_DIR to show display or standard output.</li>
+<li><code>userspace</code> - CMake package for all userspace packages.</li>
+<li><code>xtask</code> - Helpers for running, testing and setting up the environment.</li>
+</ul>
+<p>In the future, I would like to separate some bits and pieces from <code>p1c0-kernel</code> that would 
+complement the core rust library for no-std targets.</p>
+<p>In addition, it might make sense to start creating a driver API crate so that drivers can be loaded 
+externally. This fits well with a microkernel architecture and should make it easy to isolate 
+drivers and other kernel extensions from the core system.</p>
+<p>Finally, a C and C++ standard library will probably belong in <code>userspace</code> as things develop and 
+userspace grows. For now it is fine since all we have is a userspace test application taht is 
+actually relocatable (There is no dynamic loading of libraries or anything yet).</p>
 
                     </main>
 
