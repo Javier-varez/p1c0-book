@@ -3,7 +3,7 @@
 [Introduction](./introduction.md)
 
 - [Design Goals](./design_goals.md)
-- [Source files organization]()
+- [Source files organization](./source_organization.md)
 - [Installation process]()
 - [Running the emulator]()
 - [Design]()
